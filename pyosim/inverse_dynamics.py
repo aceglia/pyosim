@@ -69,6 +69,7 @@ class InverseDynamics:
             xml_output,
             mot_files,
             sto_output,
+            sto_file_output=None,
             xml_forces=None,
             forces_dir=None,
             prefix=None,
@@ -79,13 +80,12 @@ class InverseDynamics:
         self.xml_input = xml_input
         self.xml_output = xml_output
         self.sto_output = sto_output
+        self.sto_file_output = sto_file_output
         self.xml_forces = xml_forces
         self.forces_dir = forces_dir
         self.low_pass = low_pass
         self.multi = multi
-
-        if prefix:
-            self.prefix = prefix
+        self.prefix = prefix
 
         if not isinstance(mot_files, list):
             self.mot_files = [mot_files]
@@ -136,6 +136,7 @@ class InverseDynamics:
             # set name of input (mot) file and output (sto)
             filename = f'{trial.stem}'
             id_tool.setName(filename)
+            filename = self.sto_file_output if self.sto_file_output else filename
             id_tool.setOutputGenForceFileName(f"{filename}.sto")
             id_tool.setResultsDir(f'{self.sto_output}')
 
