@@ -253,6 +253,9 @@ class AnalyzeTool:
 
             analyze_tool.run()
 
+            # Remove analysis
+            model.removeAnalysis(analysis)
+
             if self.xml_forces:
                 temp_xml.unlink()  # delete temporary xml file
 
