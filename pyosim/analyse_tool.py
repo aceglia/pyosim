@@ -3,7 +3,7 @@ Analyze tool class in pyosim.
 Used in static optimization, muscle analysis and joint reaction analysis.
 """
 from pathlib import Path
-
+import numpy as np
 import opensim as osim
 
 
@@ -91,6 +91,7 @@ class AnalyzeTool:
         multi=False,
         contains=None,
         print_to_xml=False,
+        time_range=None,
     ):
         self.model_input = model_input
         self.xml_input = xml_input
@@ -107,6 +108,13 @@ class AnalyzeTool:
         self.multi = multi
         self.contains = contains
         self.print_to_xml = print_to_xml
+        if isinstance(time_range, (list, np.ndarray)):
+            self.start_time = time_range[0]
+            self.end_time = time_range[1]
+        elif time_range is None:
+            self.start_time, self.end_time = None, None
+        else:
+            raise RuntimeError("Time range must be a list or an array of start and last time frame.")
 
         if not isinstance(mot_files, list):
             self.mot_files = [mot_files]
@@ -142,8 +150,14 @@ class AnalyzeTool:
 
             # get starting and ending time
             motion = osim.Storage(f"{trial.resolve()}")
-            first_time = motion.getFirstTime()
-            last_time = motion.getLastTime()
+            if self.start_time and self.start_time != -1:
+                first_time = self.start_time
+            else:
+                first_time = motion.getFirstTime()
+            if self.end_time and self.end_time != -1:
+                last_time = self.end_time
+            else:
+                last_time = motion.getLastTime()
 
             # prepare external forces xml file
             if self.xml_forces:
