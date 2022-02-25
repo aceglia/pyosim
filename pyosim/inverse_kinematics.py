@@ -5,6 +5,8 @@ from pathlib import Path
 
 import opensim as osim
 
+import os
+
 
 class InverseKinematics:
     """
@@ -74,9 +76,7 @@ class InverseKinematics:
         self.xml_input = xml_input
         self.xml_output = xml_output
         self.multi = multi
-
-        if prefix:
-            self.prefix = prefix
+        self.prefix = prefix
 
         if not isinstance(trc_files, list):
             self.trc_files = [trc_files]
@@ -100,10 +100,7 @@ class InverseKinematics:
                 self.run_ik_tool(itrial)
 
     def run_ik_tool(self, trial):
-        model = osim.Model(self.model_input)
-        # initialize inverse kinematic tool from setup file
-        ik_tool = osim.InverseKinematicsTool(self.xml_input)
-        ik_tool.setModel(model)
+        model = osim.Model(self.model_input) if isinstance(self.model_input, str) else self.model_input
 
         print(f'\t{trial.stem}')
         # initialize inverse kinematic tool from setup file
@@ -117,13 +114,19 @@ class InverseKinematics:
             filename = trial.stem
         ik_tool.setName(filename)
         ik_tool.setMarkerDataFileName(f'{trial}')
-        ik_tool.setOutputMotionFileName(f"{Path(self.mot_output) / filename}.mot")
+        output_motion_file_name = f"{self.mot_output}/{filename}.mot"
+        if not os.path.isdir(self.mot_output):
+            os.mkdir(self.mot_output)
+        with open(output_motion_file_name, 'w') as fp:
+            pass
+        ik_tool.setOutputMotionFileName(output_motion_file_name)
         ik_tool.setResultsDir(self.mot_output)
 
-        if trial.stem in self.onsets:
-            # set start and end times from configuration file
-            start = self.onsets[trial.stem][0]
-            end = self.onsets[trial.stem][1]
+        if self.onsets:
+            if trial.stem in self.onsets:
+                # set start and end times from configuration file
+                start = self.onsets[trial.stem][0]
+                end = self.onsets[trial.stem][1]
         else:
             # use the trc file to get the start and end times
             m = osim.MarkerData(f'{trial}')

@@ -3,6 +3,7 @@ Scale class in pyosim
 """
 
 import opensim as osim
+import locale
 
 
 class Scale:
@@ -81,18 +82,27 @@ class Scale:
         age=-1,
         add_model=None,
         remove_unused=True,
+        coordinate_file_name=None
     ):
+        # Set US locale in case of not by default (works for linux)
+        locale.setlocale(category=locale.LC_ALL, locale='en_US.utf8')
         self.model = osim.Model(model_input)
         self.model_output = model_output
         self.model_with_markers_output = model_output.replace(".osim", "_markers.osim")
         self.static_path = static_path
         self.xml_output = xml_output
+        self.coordinate_file_name = coordinate_file_name
 
         self.time_range = self.time_range_from_static()
 
         # initialize scale tool from setup file
         self.scale_tool = osim.ScaleTool(xml_input)
+
+        if mass == -1:
+            mass = self.scale_tool.getSubjectMass()
+
         self.set_anthropometry(mass, height, age)
+
         # Tell scale tool to use the loaded model
         self.scale_tool.getGenericModelMaker().setModelFileName(model_input)
 
@@ -156,6 +166,7 @@ class Scale:
     def run_marker_placer(self):
         # load a scaled model
         scaled_model = osim.Model(self.model_output)
+        # scaled_model = osim.Model(self.model)
 
         marker_placer = self.scale_tool.getMarkerPlacer()
         # Whether or not to use the model scaler during scale`
@@ -164,6 +175,9 @@ class Scale:
 
         marker_placer.setStaticPoseFileName(self.static_path)
 
+        if self.coordinate_file_name:
+            marker_placer.setCoordinateFileName(self.coordinate_file_name)
+
         # Name of model file (.osim) to write when done scaling
         marker_placer.setOutputModelFileName(self.model_with_markers_output)
 
@@ -171,7 +185,7 @@ class Scale:
         marker_placer.setMaxMarkerMovement(-1)
 
         marker_placer.processModel(scaled_model)
-        
+
         # save processed model
         scaled_model.printToXML(self.model_output)
 

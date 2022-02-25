@@ -14,8 +14,8 @@ class AnalyzeTool:
 
     Parameters
     ----------
-    model_input : str
-        Path to the osim model
+    model_input : str or Osim.Model
+        Path to the osim model or osim model
     xml_input : str
         Path to the generic so xml
     xml_output : str
@@ -108,11 +108,12 @@ class AnalyzeTool:
         self.multi = multi
         self.contains = contains
         self.print_to_xml = print_to_xml
+        self.start_time, self.end_time = None, None
+
         if isinstance(time_range, (list, np.ndarray)):
             self.start_time = time_range[0]
             self.end_time = time_range[1]
-        elif time_range is None:
-            self.start_time, self.end_time = None, None
+
         else:
             raise RuntimeError("Time range must be a list or an array of start and last time frame.")
 
@@ -150,7 +151,7 @@ class AnalyzeTool:
 
             # get starting and ending time
             motion = osim.Storage(f"{trial.resolve()}")
-            if self.start_time and self.start_time != -1:
+            if self.start_time:
                 first_time = self.start_time
             else:
                 first_time = motion.getFirstTime()

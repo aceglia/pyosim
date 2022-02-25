@@ -116,7 +116,7 @@ class InverseDynamics:
             print(f'\t{trial.stem}')
 
             # initialize inverse dynamic tool from setup file
-            model = osim.Model(self.model_input)
+            model = osim.Model(self.model_input) if isinstance(self.model_input, str) else self.model_input
             id_tool = osim.InverseDynamicsTool(self.xml_input)
             id_tool.setModel(model)
 
